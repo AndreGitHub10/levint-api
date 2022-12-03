@@ -1,0 +1,15 @@
+POST http://localhost:6001/lelang/create
+Content-Type: application/json
+
+{
+    "id_item": "62a913de3864e86d4a2028be",
+    "harga_awal": "",
+    "tanggal_mulai": "",
+    "tanggal_akhir": ""
+}
+
+###
+GET http://localhost:6001/lelang/getLelangs
+Content-Type: application/json
+
+###

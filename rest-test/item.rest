@@ -1,0 +1,59 @@
+POST http://localhost:6001/item/create
+Content-Type: application/json
+
+{
+    "nama_item": "Jam lemari",
+    "deskripsi_item": "barang bagus okeee",
+    "kategori": [
+        {
+            "id": "62a84b3486f6dff262959343"
+        },
+        {
+            "id": "62a8495b86f6dff262959331"
+        },
+        {
+            "id": "62a84b3486f6dff262959343"
+        }
+    ],
+    "merek": "logi"
+}
+
+###
+POST http://localhost:6001/item/update
+Content-Type: application/json
+
+{
+    "id_item": "62a913de3864e86d4a2028be",
+    "nama_item": "Jam lemari ori",
+    "deskripsi_item":"okk",
+    "kategori": [
+        {
+            "id": "62a8495b86f6dff262959341"
+        },
+        {
+            "id": "62a84b3486f6dff262993435"
+        }
+    ],
+    "merek": "ajuda"
+}
+
+###
+GET http://localhost:6001/item/show
+Content-Type: application/json
+
+{
+    "id_item": "62a913de3864e86d4a2028be"
+}
+
+###
+DELETE http://localhost:6001/item/delete
+Content-Type: application/json
+
+{
+    "id_item": "62a9124166ac47984f1ef0ca"
+}
+
+###
+POST https://app.sandbox.midtrans.com/iris/api/v1/payouts
+Content-Type: application/json
+Accept: application/json

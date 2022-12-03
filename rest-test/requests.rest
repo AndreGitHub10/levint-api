@@ -1,0 +1,77 @@
+
+POST http://localhost:6002/item/create
+Content-Type: application/json
+
+{
+    "id_seller": "123",
+    "nama_item": "jam lama",
+    "harga_awal": "1000000",
+    "deskripsi_item": "",
+    "tambahan": [
+        {
+            "tanggal_lelang": "1-1-2001"
+        },
+        {
+            "lelang_berakhir": "2-1-2001"
+        }
+    ]
+}
+
+
+###
+POST http://localhost:4002/user/login
+Content-Type: application/json
+
+{
+    "name": "dwi",
+    "email": "aaa@g.c",
+    "password": "123456"
+}
+###
+
+POST http://localhost:5001/seller/register
+Content-Type: application/json
+
+{
+    "nama_toko": "Toko Andre",
+    "no_telp": "089665116467",
+    "lokasi_toko": "Mojosari"
+}
+###
+
+POST http://localhost:4002/user/updateNama
+Content-Type: application/json
+
+{
+    "name": "Update 1 andre"
+}
+
+###
+
+GET http://localhost:5001/seller/getSeller
+
+###
+
+GET http://localhost:4002/user/getUser
+
+###
+
+GET http://localhost:4001/api/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYyYTAyM2JhZDZhOWQ3OWIyMGMzYzYyZCIsImlhdCI6MTY1NDY2ODgwOSwiZXhwIjoxNjU0NjcyNDA5fQ.YNrl-Bb6Y-4Kb59_ylqN4uYkYEI1hqechVl6e9oX1jI
+
+###
+
+GET http://localhost:3000/posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiQW5zeWFoIiwiaWF0IjoxNjU0NTAxNjYxfQ._CtpdqoUwcYbFQSEgXniHvUOEZw-VlwJy40rmVHc87c
+
+###
+
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+    "username": "Ansyah"
+}
+
+###
+GET https://google.com/

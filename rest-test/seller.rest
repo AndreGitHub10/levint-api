@@ -1,0 +1,14 @@
+POST http://localhost:5001/seller/register
+Content-Type: application/json
+
+{
+    "nama_toko": "toko anadre",
+    "no_telp": "0896776444252",
+    "provinsi": "Jawa Timur",
+    "kabupaten": "Mojokerto",
+    "kecamatan": "Mojosari",
+    "alamat_lengkap": "jala niaga nomor 3"
+}
+
+###
+GET http://localhost:5001/seller/getSeller

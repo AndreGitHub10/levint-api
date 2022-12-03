@@ -1,0 +1,43 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "devStart": "nodemon server.js",
+    "user": "nodemon user-service.js",
+    "seller": "nodemon seller-service.js",
+    "data": "nodemon data-service.js",
+    "rtlelang": "nodemon realtime-lelang-service.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.0",
+    "cloudinary": "^1.30.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "email-validator": "^2.0.4",
+    "express": "^4.18.1",
+    "express-validator": "^6.14.2",
+    "html-to-json": "^0.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "midtrans-client": "^1.3.1",
+    "moment": "^2.29.4",
+    "mongoose": "^6.3.5",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.2",
+    "nodemailer": "^6.8.0",
+    "request": "^2.88.2",
+    "socket.io": "^4.5.1",
+    "tabletojson": "^2.0.7",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  }
+}

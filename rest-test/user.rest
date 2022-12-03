@@ -1,0 +1,48 @@
+POST http://localhost:4001/user/register
+Content-Type: application/json
+
+{
+    "name": "Dwi Putra Andreansyah",
+    "username": "andre",
+    "email": "aansah474@gmail.com",
+    "password": "12345678",
+    "phone": "089665116464"
+}
+###
+POST http://localhost:4001/user/login
+Content-Type: application/json
+
+{
+    "email": "asd@gg.cc",
+    "password": "12345678"
+}
+
+###
+GET http://localhost:4001/user/getUser
+
+###
+PUT http://localhost:4001/user/updateNama
+Content-Type: application/json
+
+{
+    "name": "Dwi Putra Andressssss"
+}
+
+###
+POST http://localhost:4001/user/coba
+Content-Type: application/json
+
+{
+    "username": "Andre",
+    "email": "aansah474@gmail.com",
+    "confirm": "http://localhost:3000/"
+}
+
+###
+POST https://resi.id/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "mobakokanalogndre@gmail.com",
+    "password": "mobakokanalog"
+}
