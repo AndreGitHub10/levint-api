@@ -6,7 +6,7 @@ const User = new mongoose.Schema(
         username: {type: String, required: true, unique: true, minlength: 3},
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true, minlength: 8 },
-        phone: { type: String, unique: true, default: ''},
+        phone: { type: String, default: '', unique: false},
         status: {
             type: String,
             enum: ['Pending', 'Active'],

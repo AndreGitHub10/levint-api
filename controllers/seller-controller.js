@@ -1,6 +1,7 @@
 require('dotenv').config()
 const express = require('express')
 const Seller = require('../models/seller.model')
+const User = require('../models/user.model')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 
@@ -117,19 +118,30 @@ const checkAvailable = async (req, res, next) => {
 const getSellerPublic = async ( req, res ) => {
     const id_seller = req.query.sellerId
     console.log(id_seller)
-    let seller;
+    let sellerData;
     try {
-        seller = await Seller.findOne({
+        sellerData = await Seller.findOne({
             _id: id_seller
         })
     } catch (err) {
         console.log(err)
     }
 
-    if (!seller) {
-        return res.status(404).json({message: "Seller data TIDAK ditemukan, silahkan register terlebih dahulu"})
+    if (!sellerData) {
+        return res.status(404).json({message: "Seller data TIDAK ditemukan"})
     }
-    return res.status(200).json({message: "Seller data ditemukan", seller:seller})
+
+    let sellerUser
+    try {
+        sellerUser = await User.findById(sellerData.id_user, "-password")
+    } catch (err) {
+        console.log(err)
+    }
+    if(!sellerUser) {
+        return res.status(404).json({message: "Seller data TIDAK ditemukan"})
+    }
+
+    return res.status(200).json({message: "Seller data ditemukan", seller:sellerData, user:sellerUser})
 }
 
 

@@ -2,6 +2,7 @@ const express = require('express')
 const Lelang = require('../models/lelang.model')
 const Item = require('../models/item.model')
 const Seller = require('../models/seller.model')
+const User = require('../models/user.model')
 const PaymentAccount = require('../models/payment.account.model')
 const Transaksi = require('../models/transaksi.model')
 const { isObjectIdOrHexString } = require('mongoose')
@@ -686,9 +687,26 @@ const getLelangRT = async (id_lelang) => {
                 if (Array.isArray(lelang.bid) && lelang.bid !== []) {
                     bid = lelang.bid
                     bid.sort((a, b) => { return b.price - a.price })
-                    if (bid.length > 3) {
-                        return { bid: bid.slice(0, 3), length: bid.length }
-                    }
+                    let bidData = await Promise.all(bid.flatMap(async(bit) => {
+                        console.log(bit)
+                        let user
+                        try {
+                            user = await User.findById(bit.id_bidder).exec()
+                        } catch (err) {
+                            console.log(err)
+                            return []
+                        }
+                        if(!user) {
+                            return []
+                        }
+                        console.log(user)
+                        return {
+                            id_bidder: bit.id_bidder,
+                            price: bit.price,
+                            user: user
+                        }
+                    }))
+                    return { bid: bidData, length: bid.length }
                 }
             }
         } else {

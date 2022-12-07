@@ -276,6 +276,21 @@ const updatePhoto = async (req, res) => {
     return res.status(200).json({message: "Berhasil Ubah Gambar", user})
 }
 
+const getSellerUser = async () => {
+    let id_user = req.query.idUser
+    let user
+    try {
+        user = await User.findById(id_user, "username, alamat, photo, phone")
+    } catch (err) {
+        console.log(err)
+    }
+
+    if(!user) {
+        return res.status(400).json({message: "User toko tidak ditemukan"})
+    }
+    return res.status(200).json({message: "User toko ditemukan", user})
+}
+
 exports.register = register
 exports.login = login
 // exports.verifyToken = verifyToken
@@ -285,3 +300,4 @@ exports.updateNama = updateNama
 exports.confirmAccount = confirmAccount
 exports.emailVerification = emailVerification
 exports.updatePhoto = updatePhoto
+exports.getSellerUser = getSellerUser
