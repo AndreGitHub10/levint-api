@@ -2,8 +2,8 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
+    "start": "nodemon user-service.js",
     "devStart": "nodemon server.js",
     "user": "nodemon user-service.js",
     "seller": "nodemon seller-service.js",
