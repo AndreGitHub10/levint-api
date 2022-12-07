@@ -1,0 +1,10 @@
+{
+    "version": 2,
+    "name": "levintapi",
+    "builds": [
+       { "src": "user-service.js", "use": "@vercel/node" }
+    ],
+    "routes": [
+       { "src": "/(.*)", "dest": "/user-service.js" }
+    ]
+ }
