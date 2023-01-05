@@ -1,5 +1,5 @@
 const express = require('express')
-const { createLelang, createClosedLelang, createBid, createClosedBid, updateLelang, getLelangs, deleteAll, getLelang } = require('../controllers/lelang-controller')
+const { createLelang, createClosedLelang, createBid, createClosedBid, updateLelang, getLelangs, deleteAll, getLelang, getLelangNowBySeller, cancelLelang, getLelangRiwayatBySeller } = require('../controllers/lelang-controller')
 const { lelangValidator } = require('../shared-service/lelangValidator')
 const { refreshToken } = require('../shared-service/refreshToken')
 const { verifyToken } = require('../shared-service/verifyToken')
@@ -11,7 +11,10 @@ lelangRouter.post('/createClosed', verifyToken, refreshToken, lelangValidator('c
 lelangRouter.put('/update', verifyToken, refreshToken, updateLelang)
 lelangRouter.put('/createBid', verifyToken, passwordConfirm, refreshToken, createBid)
 lelangRouter.put('/createClosedBid', verifyToken, passwordConfirm, refreshToken, createClosedBid)
+lelangRouter.post('/cancelLelang', verifyToken, cancelLelang)
 lelangRouter.get('/getLelangs', getLelangs)
+lelangRouter.get('/getLelangNowBySeller', verifyToken, getLelangNowBySeller)
+lelangRouter.get('/getLelangRiwayatBySeller', verifyToken, getLelangRiwayatBySeller)
 lelangRouter.get('/getLelang/:id_item', getLelang)
 lelangRouter.delete('/deleteAll', verifyToken, deleteAll)
 module.exports = lelangRouter

@@ -1,5 +1,41 @@
 const mongoose = require('mongoose')
 
+const AlamatSchema = mongoose.Schema({
+        provinsi: {
+            type: {
+                id: {type: String},
+                provinsi: {type: String}
+            },
+            default: {
+                id: '',
+                provinsi: ''
+            }
+        },
+        kabupaten: {
+            type: {
+                id: {type: String},
+                kabupaten: {type: String}
+            },
+            default: {
+                id: '',
+                kabupaten: ''
+            }
+        },
+        kecamatan: {
+            type: {
+                id: {type: String},
+                kecamatan: {type: String}
+            },
+            default: {
+                id: '',
+                kecamatan: ''
+            }
+        },
+        nama_penerima: {type: String, default: ""},
+        no_telp: {type: String, default: ""},
+        alamat_lengkap: {type: String, default: ""}
+    })
+
 const User = new mongoose.Schema(
     {
         name: { type: String, required: true },
@@ -44,6 +80,7 @@ const User = new mongoose.Schema(
                 alamat_lengkap: ''
             }
         },
+        savedAlamat: {type: [AlamatSchema], default: []},
         photo: {type: String, default: ''},
         profil: {type: String},
         history: [],

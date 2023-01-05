@@ -1,6 +1,6 @@
 const express = require('express')
 const { createMessage, getAllChat } = require('../controllers/chat-controller')
-const { register, login, getUser, logout, updateNama, confirmAccount, emailVerification, updatePhoto, getSellerUser } = require('../controllers/user-controller')
+const { register, login, getUser, logout, confirmAccount, emailVerification, updatePhoto, getSellerUser, updateUser, lupaPassword, addAlamat, deleteAlamat } = require('../controllers/user-controller')
 const { registerValidator } = require('../shared-service/inputValidator')
 const { verifyToken } = require('../shared-service/verifyToken')
 
@@ -18,5 +18,8 @@ userRouter.post('/updatePhoto', verifyToken, updatePhoto)
 userRouter.get('/getSellerUser', getSellerUser)
 
 // update function
-userRouter.put('/updateNama', verifyToken, updateNama)
+userRouter.post('/updateUser', verifyToken, updateUser)
+userRouter.post('/lupaPassword', lupaPassword)
+userRouter.post('/addAlamat', verifyToken, addAlamat)
+userRouter.post('/deleteAlamat', verifyToken, deleteAlamat)
 module.exports = userRouter

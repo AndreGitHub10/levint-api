@@ -10,6 +10,7 @@ const { json } = require('express')
 const moment = require('moment')
 const { validationResult } = require('express-validator')
 const { createTransaksi } = require('./transaksi-controller')
+const { sendLelangBidNotificationEmail, sendLelangEndedNotificationToLoserEmail, sendLelangEndedNotificationEmail, sendLelangWinnerNotificationEmail } = require('../shared-service/nodemailer.config')
 
 const createLelang = async (req, res, next) => {
     const { id_item, harga_dasar, tanggal_mulai, bid_increase, auto_sell_price, auto_sell, sell_limit, sell_limit_price, open_bidding, estLelang_hari, estLelang_jam } = req.body
@@ -97,11 +98,34 @@ const createLelang = async (req, res, next) => {
         bid: []
     })
 
+    let paymentAccount
+    try {
+        paymentAccount = await PaymentAccount.findOne({ id_user: req.id })
+    } catch (err) {
+        return res.status(400).json({message: err.message})
+    }
+    let newSaldo = 0
+    if (!paymentAccount) {
+        return res.status(404).json({ message: "Anda belum memiliki saldo, silahkan isi ulang saldo anda" })
+    } else {
+        if (paymentAccount.saldo < 50000) {
+            return res.status(404).json({ message: "Saldo anda tidak mencukupi, silahkan isi ulang saldo anda" })
+        } else {
+            newSaldo = paymentAccount.saldo - 50000
+        }
+    }
+
     try {
         await lelang.save()
     } catch (err) {
         console.log(err)
         return res.status(400).json({ message: 'Pastikan data terisi semua', error: err.message })
+    }
+
+    try {
+        paymentAccount = await PaymentAccount.findOneAndUpdate({ id_user: req.id }, { saldo: newSaldo, $push: { usage: { type: "jaminanSeller", id_lelang: lelang._id, amount: 50000 } } })
+    } catch (err) {
+        return res.status(400).json(err.message)
     }
 
     try {
@@ -196,11 +220,34 @@ const createClosedLelang = async (req, res) => {
         bid: []
     })
 
+    let paymentAccount
+    try {
+        paymentAccount = await PaymentAccount.findOne({ id_user: req.id })
+    } catch (err) {
+        return res.status(400).json({message: err.message})
+    }
+    let newSaldo = 0
+    if (!paymentAccount) {
+        return res.status(404).json({ message: "Anda belum memiliki saldo, silahkan isi ulang saldo anda" })
+    } else {
+        if (paymentAccount.saldo < 50000) {
+            return res.status(404).json({ message: "Saldo anda tidak mencukupi, silahkan isi ulang saldo anda" })
+        } else {
+            newSaldo = paymentAccount.saldo - 50000
+        }
+    }
+
     try {
         await lelang.save()
     } catch (err) {
         console.log(err)
         return res.status(400).json({ message: 'Pastikan data terisi semua', error: err.message })
+    }
+
+    try {
+        paymentAccount = await PaymentAccount.findOneAndUpdate({ id_user: req.id }, { saldo: newSaldo, $push: { usage: { type: "jaminanSeller", id_lelang: lelang._id, amount: 50000 } } })
+    } catch (err) {
+        return res.status(400).json(err.message)
     }
 
     try {
@@ -293,6 +340,30 @@ const cancelLelang = async (req, res) => {
         lelang = await Lelang.findByIdAndUpdate(id_lelang, {status: "canceled"})
     } catch (err) {
         return res.status(400).json({ message: "Terjadi masalah server dan database", error: err.message })
+    }
+
+    try {
+        await Item.findByIdAndUpdate(lelang.id_item, {status: 'endLelang'})
+    } catch (err) {
+        console.log(err)
+    }
+
+    if(lelang.bid.length > 0) {
+        lelang.bid.map(async(bid) => {
+            try {
+                await PaymentAccount.findOneAndUpdate({id_user: bid.id_bidder, "usage.id_lelang": lelang._id}, {$set: {"usage.$.type": "return"}, $inc: {saldo: 50000}})
+            } catch (err) {
+                console.log(err)
+            }
+        })
+        return res.status(200).json({message: "Lelang berhasil dibatalkan, dan uang jaminan tidak kembali"})
+    } else {
+        try {
+            await PaymentAccount.findOneAndUpdate({id_user: lelang.id_seller, "usage.id_lelang": lelang._id}, {$set: {"usage.$.type": "return"}, $inc: {saldo: 50000}})
+        } catch (err) {
+            console.log(err)
+        }
+        return res.status(200).json({message: "Lelang berhasil dibatalkan, dan uang jaminan kembali"})
     }
 }
 
@@ -410,14 +481,16 @@ const createBid = async (req, res, next) => {
                 lelang = await Lelang.findByIdAndUpdate(id_lelang, { status: "onTransaction", $push: { bid: { id_bidder: id_user, price: autoSell } } })
             } catch (error) {
                 return new Error(error)
-            }
-            if(lelang) {
-                createTransaksi(lelang.id_seller, lelang.id_item, id_user, autoSell, lelang._id)
-                returnJaminanToLoser(lelang, id_user)
-                try{
-                    await Item.updateOne({_id: lelang.id_item}, {status: "endLelang"})
-                } catch (error) {
-                    console.log(error)
+            } finally {
+                if(lelang) {
+                    createTransaksi(lelang.id_seller, lelang.id_item, id_user, autoSell, lelang._id)
+                    returnJaminanToLoser(lelang, id_user)
+                    try{
+                        await Item.updateOne({_id: lelang.id_item}, {status: "endLelang"})
+                    } catch (error) {
+                        console.log(error)
+                    }
+                    buyNowNotify(lelang, id_user)
                 }
             }
             // try {
@@ -447,6 +520,8 @@ const createBid = async (req, res, next) => {
             if (userBid <= highBid) {
                 return res.status(400).json({ message: "bid anda lebih kecil dari bid tertinggi saat ini, data tidak bisa diinput" })
             }
+
+            bidNotify(lelang, id_user)
     
             for (let bid of lelang.bid) {
                 if (bid.id_bidder == id_user) {
@@ -661,6 +736,65 @@ const getLelangs = async (req, res) => {
     return res.status(200).json({ message: "Data list lelang berhasil didapatkan", lelangs })
 }
 
+const getLelangNowBySeller = async (req, res) => {
+    const id_seller = req.id
+    let lelangs = []
+    try {
+        lelangs = await Lelang.find({id_seller: id_seller, status: "scheduled", tanggal_mulai: { $lt: Date() }, tanggal_akhir: { $gte: Date() } })
+    } catch (err) {
+        return res.status(400).json({message: "Kesalahan server database, saat mencari lelang sekarang"})
+    }
+
+    let lelangNow = await Promise.all(lelangs.flatMap(async(lelang) => {
+        let item 
+        try {
+            item = await Item.findById(lelang.id_item)
+        } catch (err) {
+            console.log(err)
+        }
+        if(item) {
+            return {
+                item: item,
+                lelang: lelang
+            }
+        } else {
+            return []
+        }
+    }))
+
+    return res.status(200).json({message: "berhasil mendapatkan data semua lelang", lelangs: lelangNow})
+}
+
+const getLelangRiwayatBySeller = async (req, res) => {
+    const id_seller = req.id
+    let lelangs = []
+    const lelangStatus = ["onTransaction", "ended", "canceled"]
+    try {
+        lelangs = await Lelang.find({id_seller: id_seller, status: { $in: lelangStatus }})
+    } catch (err) {
+        return res.status(400).json({message: "Kesalahan server database, saat mencari lelang sekarang"})
+    }
+
+    let lelangNow = await Promise.all(lelangs.flatMap(async(lelang) => {
+        let item 
+        try {
+            item = await Item.findById(lelang.id_item)
+        } catch (err) {
+            console.log(err)
+        }
+        if(item) {
+            return {
+                item: item,
+                lelang: lelang
+            }
+        } else {
+            return []
+        }
+    }))
+
+    return res.status(200).json({message: "berhasil mendapatkan data semua lelang", lelangs: lelangNow})
+}
+
 const deleteAll = async (req, res) => {
     let lelangs
     try {
@@ -825,7 +959,7 @@ const returnJaminanToLoser = async (lelang, id_user) =>{
         if(bid.id_bidder !== id_user) {
             let loserPaymentAccount
             try {
-                loserPaymentAccount = await PaymentAccount.findOneAndUpdate({id_user: bid.id_bidder, "usage.id_lelang": id_lelang}, {$set: {"usage.$.type": "return"}, $inc: {saldo: 50000}} )
+                loserPaymentAccount = await PaymentAccount.findOneAndUpdate({id_user: bid.id_bidder, "usage.id_lelang": lelang._id}, {$set: {"usage.$.type": "return"}, $inc: {saldo: 50000}} )
             } catch(err){
                 console.log(err)
             }
@@ -839,16 +973,80 @@ const returnJaminanToLoser = async (lelang, id_user) =>{
     return
 }
 
+const bidNotify = async (old_lelang, new_bidder) => {
+    let bid = old_lelang.bid
+    bid.sort((a, b) => { return b.price - a.price })
+    let item
+    let user
+    if(bid[0].id_bidder !== new_bidder) {
+        try {
+            user = await User.findById(bid[0].id_bidder)
+        } catch (err) {
+            console.log(err)
+        }
+        try {
+            item = await Item.findById(old_lelang.id_item)
+        } catch (err) {
+            console.log(err)
+        }
+
+        sendLelangBidNotificationEmail(user.username, user.email, item.nama_item, `http://localhost:3000/item?itemId=${old_lelang.id_item}`)
+    }
+    return
+}
+
+const buyNowNotify = async (lelang, id_winner) => {
+    let bid = lelang.bid
+    bid.sort((a, b) => { return b.price - a.price })
+    let item
+    let seller
+    try {
+        item = await Item.findById(lelang.id_item)
+    } catch (err) {
+        console.log(err)
+    }
+
+    bid.map( async (bidd) => {
+        if(bidd.id_bidder !== id_winner) {
+            let loser
+            try {
+                loser = await User.findById(bidd.id_bidder)
+            } catch (err) {
+                console.log(err)
+            }
+            sendLelangEndedNotificationToLoserEmail(loser.username, loser.email, item.nama_item, "http://localhost:3000/dashboard/aktivitas")
+        }
+    })
+
+    try {
+        seller = await User.findById(lelang.id_seller)
+    } catch (err) {
+        console.log(err)
+    }
+    let winner
+    try {
+        winner = await User.findById(id_winner)
+    } catch (err) {
+        console.log(err)
+    }
+    sendLelangEndedNotificationEmail(seller.username, seller.email, item.nama_item, `http://localhost:3001/lelang/riwayat`)
+    sendLelangWinnerNotificationEmail(winner.username, winner.email, item.nama_item, "http://localhost:3000/dashboard/transaksi")
+}
+
 
 exports.createLelang = createLelang
 exports.createClosedLelang = createClosedLelang
 exports.updateLelang = updateLelang
+exports.cancelLelang = cancelLelang
 exports.deleLelang = deleteLelang
 exports.createBid = createBid
 exports.createClosedBid = createClosedBid
 exports.getLelang = getLelang
 exports.getLelangs = getLelangs
+exports.getLelangNowBySeller = getLelangNowBySeller
+exports.getLelangRiwayatBySeller = getLelangRiwayatBySeller
 exports.deleteAll = deleteAll
 exports.getLelangRT = getLelangRT
 exports.setWinner = setWinner
 exports.getAktivitasBid = getAktivitasBid
+exports.returnJaminanToLoser = returnJaminanToLoser

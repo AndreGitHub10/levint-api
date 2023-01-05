@@ -55,10 +55,66 @@ const sendLelangWinnerNotificationEmail = (name, email, item, link) => {
         html: `<div><h1>Selamat Anda Memenangkan Lelang</h1>
             <h2>Halo ${name}</h2>
             <p>Anda telah memenangkan lelang untuk barang : ${item}, anda bisa melanjutkan transaksi selanjutnya pada website Lelang Vintage atau tekan tombol dibawah untuk masuk ke proses transaksi</p>
-            <button href="${link}">Check Transaksi</button>
+            <button href="${link}">Cek Transaksi</button>
+            </div>`
+    }).catch(err => console.log(err))
+}
+
+const sendLelangBidNotificationEmail = (name, email, item, link) => {
+    transport.sendMail({
+        from: user,
+        to: email,
+        subject: "INFORMASI LELANG",
+        html: `<div><h1>Item : ${item}</h1>
+            <h2>Halo ${name}</h2>
+            <p>Seseorang telah menawar dengan harga yang lebih tinggi dari tawaran anda, segera cek dan lakukan sesuatu untuk memenangkannya, cek pada link berikut</p>
+            <button href="${link}">Cek</button>
+            </div>`
+    }).catch(err => console.log(err))
+}
+
+const sendLelangEndedNotificationEmail = (name, email, item, link) => {
+    transport.sendMail({
+        from: user,
+        to: email,
+        subject: "INFORMASI LELANG",
+        html: `<div><h1>Item : ${item}</h1>
+            <h2>Halo ${name}</h2>
+            <p>Pelelangan telah berakhir, silahkan cek data lelang pada link berikut</p>
+            <button href="${link}">Cek</button>
+            </div>`
+    }).catch(err => console.log(err))
+}
+
+const sendLelangEndedNotificationToLoserEmail = (name, email, item, link) => {
+    transport.sendMail({
+        from: user,
+        to: email,
+        subject: "INFORMASI HASIL LELANG",
+        html: `<div><h1>Item : ${item}</h1>
+            <h2>Halo ${name}</h2>
+            <p>Pelelangan yang anda ikuti telah berakhir, sayang sekali anda kalah, saldo jaminan telah dikembalikan</p>
+            <button href="${link}">Cek</button>
+            </div>`
+    }).catch(err => console.log(err))
+}
+
+const sendLupaPassword = (name, email, link) => {
+    transport.sendMail({
+        from: user,
+        to: email,
+        subject: "Ubah password",
+        html: `<div><h1>Link ubah sandi</h1>
+            <h2>Hi ${name}</h2>
+            <p>berikut adalah link untuk merubah sandi kamu</p>
+            <button href="${link}">Cek</button>
             </div>`
     }).catch(err => console.log(err))
 }
 
 exports.sendConfirmationEmail = sendConfirmationEmail
 exports.sendLelangWinnerNotificationEmail = sendLelangWinnerNotificationEmail
+exports.sendLelangBidNotificationEmail = sendLelangBidNotificationEmail
+exports.sendLelangEndedNotificationEmail = sendLelangEndedNotificationEmail
+exports.sendLelangEndedNotificationToLoserEmail = sendLelangEndedNotificationToLoserEmail
+exports.sendLupaPassword = sendLupaPassword

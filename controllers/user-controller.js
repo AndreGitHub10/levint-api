@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const validator = require('email-validator')
 const moment = require('moment')
-const {sendConfirmationEmail} = require('../shared-service/nodemailer.config.js')
+const {sendConfirmationEmail, sendLupaPassword} = require('../shared-service/nodemailer.config.js')
 // const { registerValidator } = require('../shared-service/inputValidator')
 const { validationResult } = require('express-validator')
 
@@ -131,21 +131,20 @@ const login = async (req, res, next) => {
     return res.status(200).json({message: "Login Berhasil!", user: user})
 }
 
-const updateNama = async (req, res, next) => {
+const updateUser = async (req, res, next) => {
     const id = req.id
-    const {name} = req.body
-    if (!name) {
-        return res.status(400).json({message: "nama tidak diizinkan"})
+    const {name, username, phone, alamat} = req.body
+    if (!name || !username || !phone || !alamat) {
+        return res.status(400).json({message: "data tidak boleh kosong"})
     }
     
     try {
-        const updateName = await User.findByIdAndUpdate({_id: id}, {name: name, updatedAt: Date.now()})
-        console.log(updateNama.name)
+        await User.findByIdAndUpdate(id, {name: name, username: username, phone: phone, alamat: alamat, updatedAt: Date.now()})
     } catch (err) {
         return new Error(err)
     }
-    const updatedUser = await User.findById({_id: id}, "-password")
-    return res.status(202).json({message: "User terupdate", updatedUser})
+    const updatedUser = await User.findById(id, "-password")
+    return res.status(202).json({message: "User berhasil diupdate terupdate", updatedUser})
 }
 
 const confirmAccount = async (req, res) => {
@@ -291,13 +290,121 @@ const getSellerUser = async () => {
     return res.status(200).json({message: "User toko ditemukan", user})
 }
 
+const addAlamat = async (req, res) => {
+    const id_user = req.id
+    const {alamat} = req.body
+    console.log(alamat)
+    let newAlamat
+    try {
+        newAlamat = await User.findByIdAndUpdate(id_user, { $push: {savedAlamat: {
+            provinsi: {
+                id: alamat.provinsi.id,
+                provinsi: alamat.provinsi.provinsi
+            },
+            kabupaten: {
+                id: alamat.kabupaten.id,
+                kabupaten: alamat.kabupaten.kabupaten
+            },
+            kecamatan: {
+                id: alamat.kecamatan.id,
+                kecamatan: alamat.kecamatan.kecamatan
+            },
+            alamat_lengkap: alamat.alamat_lengkap,
+            nama_penerima: alamat.nama_penerima,
+            no_telp: alamat.no_telp
+        }} })
+    } catch (err) {
+        return res.status(400).json({message: "gagal menambahkan alamat"})
+    }
+
+    let user
+    try {
+        user = await User.findById(id_user, '-password')
+    } catch (error) {
+        console.log(error)
+    }
+
+    return res.status(200).json({message: "berhasil menambahkan alamat", user: user})
+}
+
+const deleteAlamat = async (req, res) => {
+    const id_user = req.id
+    const {id_alamat} = req.body
+    let newAlamat
+    try {
+        newAlamat = await User.findByIdAndUpdate(id_user, { $pull: {savedAlamat: {_id: id_alamat}} }, {new: true})
+    } catch (err) {
+        return res.status(400).json({message: "gagal menghapus alamat"})
+    }
+
+    let user
+    try {
+        user = await User.findById(id_user, '-password')
+    } catch (error) {
+        console.log(error)
+    }
+
+    return res.status(200).json({message: "berhasil menghapus alamat", user: user})
+}
+
+const lupaPassword = async (req, res) => {
+    const email = req.body
+    let user
+    try {
+        user = await User.findOne({email: email})
+    } catch (err) {
+        console.log(err)
+    }
+
+    if(!user) {
+        return res.status(400).json({message: "User tidak ditemukan"})
+    }
+
+    const confirmToken = jwt.sign({email: user.email}, process.env.NM_SECRET, {
+        expiresIn: 60 * 10 // 10mins
+    })
+
+    sendLupaPassword(user.username, user.email, `http://localhost:3000/ubahPasword?ct=${confirmToken}`)
+    return res.status(200).json({message: "Ubah sandi akun anda melalui link yang telah kami kirim melalui email"})
+}
+
+// const gantiSandi = async (req, res) => {
+//     const id_user = req.id
+//     const {password, newPassword} = req.body
+//     let existingUser;
+//     try{
+//         existingUser = await User.findById(id_user)
+//     } catch (err) {
+//         return new Error(err)
+//     }
+
+//     // respond jika data belum terdaftar
+//     if (!existingUser){
+//         return res.status(404).json({message: "User tidak ditemukan. Silahkan daftar"})
+//     }
+
+//     const isPasswordCorrect = bcrypt.compareSync(password, existingUser.password)
+//     if(!isPasswordCorrect) {
+//         return res.status(404).json({message: "Password salah"})
+//     }
+
+
+// }
+
+// const updateSandi = (req, res) => {
+
+// }
+
 exports.register = register
 exports.login = login
 // exports.verifyToken = verifyToken
 exports.getUser = getUser
 exports.logout = logout
-exports.updateNama = updateNama
+exports.updateUser = updateUser
 exports.confirmAccount = confirmAccount
 exports.emailVerification = emailVerification
 exports.updatePhoto = updatePhoto
 exports.getSellerUser = getSellerUser
+exports.lupaPassword = lupaPassword
+exports.addAlamat = addAlamat
+exports.deleteAlamat = deleteAlamat

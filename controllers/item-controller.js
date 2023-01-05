@@ -6,7 +6,7 @@ const Kategori = require('../models/kategori.model')
 
 const createItem = async (req, res, next) => {
     console.log("Create Item")
-    const { nama_item, deskripsi_item, kategori, jumlah_item, merek, item_berbahaya, panjang_cm, lebar_cm, tinggi_cm, berat, gambar, provinsi, kabupaten, kecamatan, beratPaket, ukuranPaket, kurirList, tahun } = req.body
+    const { nama_item, deskripsi_item, kategori, jumlah_item, merek, item_berbahaya, panjang_cm, lebar_cm, tinggi_cm, berat, gambar, provinsi, kabupaten, kecamatan, beratPaket, promo, promoPrice, ukuranPaket, kurirList, tahun } = req.body
     const seller = await Seller.findOne({id_user: req.id})
     if(!seller) {
         return res.status(400).json({message: "Data gagal disimpan, anda belum memiliki akun toko aktif"})
@@ -57,6 +57,7 @@ const createItem = async (req, res, next) => {
         beratPaket,
         kurirList,
         tahun,
+        promo:{ada: promo, disc: promoPrice},
         jumlah_item,
         status: "new",
         createdAt: Date.now(),
@@ -211,6 +212,12 @@ const getItemBySeller = async (req, res) => {
     return res.status(200).json({message: "Data Item Berhasil Ditemukan", dataItem: dataItem})
 }
 
+const getNewItemBySeller = async (req, res) => {
+    const id_seller = req.query.sellerId
+    const dataItem = await Item.find({id_seller: id_seller, status: "new"})
+    return res.status(200).json({message: "Data Item Berhasil Ditemukan", dataItem: dataItem})
+}
+
 const getKategori = async (req, res) => {
     const dataKategori = await Kategori.find({})
     return res.status(200).json({message: "Data Kategori", dataKategori: dataKategori})
@@ -222,3 +229,4 @@ exports.showItem = showItem
 exports.deleteItem = deleteItem
 exports.getItemBySeller = getItemBySeller
 exports.getKategori = getKategori
+exports.getNewItemBySeller = getNewItemBySeller

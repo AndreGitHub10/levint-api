@@ -22,7 +22,11 @@ const Item = new mongoose.Schema({
     tinggi_cm: {type: Number},
     berat: {type: Number},
     ukuranPaket: {type: UkuranPaket, required: true},
-    beratPaket: {type: Number, default: 1000},
+    beratPaket: {type: Number, default: 500},
+    promo: {
+        ada: {type: Boolean, default: false},
+        disc: {type: Number, default: 0}
+    },
     tahun: {type: Number},
     provinsi: {type: Object, required: true, default: {id: "", provinsi: ""}},
     kabupaten: {type: Object, required: true, default: {id: "", kabupaten: ""}},

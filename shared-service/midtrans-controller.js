@@ -157,7 +157,7 @@ const checkPaymentStatus = async (req, res) => {
         return res.status(200).json({ message: "payment status updated", topUpDetail })
     })
         .catch((error) => {
-            console.log(error.ApiResponse.status_message)
+            console.log(error)
             return res.status(400).json({message: 'Silahkan tekan tombol bayar dan pilih step pembayaran'})
         })
 }
